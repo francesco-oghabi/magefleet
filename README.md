@@ -2,6 +2,31 @@
 
 MageFleet is a specialized fork of [Warden](https://github.com/wardenenv/warden), focused exclusively on Magento development. It's a CLI utility for orchestrating Docker based Magento developer environments, enabling multiple local environments to run simultaneously without port conflicts via centrally run services for proxying requests.
 
+## Installation
+
+### Homebrew (macOS and Linux)
+
+```bash
+brew tap francesco-oghabi/magefleet
+brew install magefleet
+```
+
+After installation, complete the setup:
+
+```bash
+magefleet install
+```
+
+### Manual Installation
+
+Clone the repository and add to your PATH:
+
+```bash
+git clone https://github.com/francesco-oghabi/magefleet.git
+cd magefleet
+export PATH="$PWD/bin:$PATH"
+```
+
 ## Why MageFleet?
 
 MageFleet streamlines Magento development by:
