@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -e
+trap 'error "$(printf "Command \`%s\` at $BASH_SOURCE:$LINENO failed with exit code $?" "$BASH_COMMAND")"' ERR
+
+## find directory where this script is located following symlinks if necessary
+readonly MAGEFLEET_DIR="$(
+  cd "$(
+    dirname "$(
+      (readlink "${BASH_SOURCE[0]}" || echo "${BASH_SOURCE[0]}") \
+        | sed -e "s#^../#$(dirname "$(dirname "${BASH_SOURCE[0]}")")/#"
+    )"
+  )/.." >/dev/null \
+  && pwd
+)"
+
+export readonly MAGEFLEET_BIN="${MAGEFLEET_DIR}/bin/magefleet"
+export readonly DOCKER_COMPOSE_COMMAND="${DOCKER_COMPOSE_COMMAND:-"docker compose"}"
+
+source "${MAGEFLEET_DIR}/utils/core.sh"
+source "${MAGEFLEET_DIR}/utils/svc.sh"
+source "${MAGEFLEET_DIR}/utils/env.sh"
+
+## verify docker is installed
+if ! which docker >/dev/null; then
+  fatal "docker could not be found; please install and try again."
+fi
+
+## verify docker compose meets version constraint
+if [[ "${DOCKER_COMPOSE_COMMAND}" == "docker compose" ]]; then
+  # Disable version check for experimental stuff
+  DOCKER_COMPOSE_REQUIRE="2.2.3"
+  DOCKER_COMPOSE_VERSION="$(${DOCKER_COMPOSE_COMMAND} version | grep -oE '[0-9\.]+' | head -n1)"
+  if ! test $(version ${DOCKER_COMPOSE_VERSION}) -ge $(version ${DOCKER_COMPOSE_REQUIRE}); then
+    fatal "docker compose version should be ${DOCKER_COMPOSE_REQUIRE} or higher (${DOCKER_COMPOSE_VERSION} installed)"
+  fi
+fi
+
+## define and export global shared directory paths
+export readonly MAGEFLEET_HOME_DIR="${MAGEFLEET_HOME_DIR:-"$HOME/.magefleet"}"
+export readonly MAGEFLEET_SSL_DIR="${MAGEFLEET_HOME_DIR}/ssl"
+export readonly MAGEFLEET_COMPOSER_DIR="${MAGEFLEET_COMPOSER_DIR:-"$HOME/.composer"}"
+
+## declare variables for flags and arguments
+declare MAGEFLEET_HELP=
+declare MAGEFLEET_PARAMS=()
+declare MAGEFLEET_CMD_VERB=
+declare MAGEFLEET_CMD_EXEC=
+declare MAGEFLEET_CMD_HELP=
+declare MAGEFLEET_CMD_ANYARGS=(db debug doctor env redis shell svc sync)
+
+## parse first argument as command and determine validity
+if (( "$#" )); then
+  ## local project directory if running within one; don't fail if it can't be found
+  MAGEFLEET_ENV_PATH="$(locateEnvPath 2>/dev/null)" || true
+
+  if [[ -f "${MAGEFLEET_ENV_PATH}/.magefleet/commands/${1}.cmd" ]]; then
+    MAGEFLEET_CMD_VERB="$1"
+    MAGEFLEET_CMD_ANYARGS+=("$1")
+    MAGEFLEET_CMD_EXEC="${MAGEFLEET_ENV_PATH}/.magefleet/commands/${1}.cmd"
+    MAGEFLEET_CMD_HELP="${MAGEFLEET_ENV_PATH}/.magefleet/commands/${1}.help"
+    shift
+  elif [[ -f "${MAGEFLEET_HOME_DIR}/commands/${1}.cmd" ]]; then
+    MAGEFLEET_CMD_VERB="$1"
+    MAGEFLEET_CMD_ANYARGS+=("$1")
+    MAGEFLEET_CMD_EXEC="${MAGEFLEET_HOME_DIR}/commands/${1}.cmd"
+    MAGEFLEET_CMD_HELP="${MAGEFLEET_HOME_DIR}/commands/${1}.help"
+    shift
+  elif [[ -f "${MAGEFLEET_DIR}/commands/${1}.cmd" ]]; then
+    MAGEFLEET_CMD_VERB="$1"
+    MAGEFLEET_CMD_EXEC="${MAGEFLEET_DIR}/commands/${1}.cmd"
+    MAGEFLEET_CMD_HELP="${MAGEFLEET_DIR}/commands/${1}.help"
+    shift
+  else
+    MAGEFLEET_HELP=1
+  fi
+else
+  MAGEFLEET_HELP=1
+fi
+
+## parse arguments
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      MAGEFLEET_HELP=1
+      break
+      ;;
+    -v|--verbose)
+      MAGEFLEET_VERBOSE=1
+      break
+      ;;
+    --) # end argument parsing (unless command is on 'anyargs' list and consumes anything as params)
+      shift
+      containsElement "${MAGEFLEET_CMD_VERB}" "${MAGEFLEET_CMD_ANYARGS[@]}" || break
+      ;;
+    -*|--*=) # unsupported flags (unless command is on 'anyargs' list and consumes anything as params)
+      containsElement "${MAGEFLEET_CMD_VERB}" "${MAGEFLEET_CMD_ANYARGS[@]}" && break
+      fatal "Unsupported flag $1"
+      ;;
+    *) # preserve positional arguments
+      MAGEFLEET_PARAMS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+## display command specific usage info if help flag is set
+if [[ ${MAGEFLEET_HELP} ]]; then
+  source "${MAGEFLEET_DIR}/commands/usage.cmd"
+fi
+
+
+## execute sub-command in context of this script
+source "${MAGEFLEET_CMD_EXEC}"

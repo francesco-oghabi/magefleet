@@ -1,0 +1,9 @@
+services:
+  valkey:
+    hostname: "${MAGEFLEET_ENV_NAME}-valkey"
+    image: ${MAGEFLEET_IMAGE_REPOSITORY}/valkey:${VALKEY_VERSION:-8.1}
+    volumes:
+      - valkey:/data
+
+volumes:
+  valkey:

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+[[ ! ${MAGEFLEET_DIR} ]] && >&2 echo -e "\033[31mThis script is not intended to be run directly!\033[0m" && exit 1
+
+MAGEFLEET_HEADER='
+    __  ___                 ________ __          __
+   /  |/  /___ ____ ____   / ____/ / ___  ___  / /_
+  / /|_/ / __ `/ __ `/ _ \ / /_  / / / _ \/ _ \/ __/
+ / /  / / /_/ / /_/ /  __// __/ / / /  __/  __/ /_
+/_/  /_/\__,_/\__, /\___//_/   /_/_/\___/\___/\__/
+             /____/
+'
+
+MAGEFLEET_USAGE=$(cat <<EOF
+${MAGEFLEET_HEADER:1}
+MageFleet version $(cat ${MAGEFLEET_DIR}/version)
+
+\033[33mUsage:\033[0m
+  command [options] [arguments]
+
+\033[33mOptions:\033[0m
+  -h, --help        Display this help menu
+
+\033[33mCommands:\033[0m
+  db                Interacts with the db service on an environment (see 'magefleet db -h' for details)
+  debug             Launches debug enabled shell within current project environment
+  doctor            Software information for bug reports
+  env               Controls an environment from any point within the root project directory
+  env-init          Configure environment by adding '.env' file to the current working directory
+  install           Initializes or updates magefleet configuration on host machine
+  redis             Interacts with the redis service on an environment (see 'magefleet redis -h' for details)
+  shell             Launches into a shell within the current project environment
+  sign-certificate  Signs a wildcard certificate including all passed hostnames on the SAN list
+  spx               Launches spx enabled shell within current project environment
+  status            Display list of all running MageFleet project environments
+  svc               Orchestrates global services such as traefik, portainer and dnsmasq via docker compose
+  valkey            Interacts with the Valkey service on an environment (see 'magefleet valkey -h' for details)  
+  version           Show version information
+EOF
+)

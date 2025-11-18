@@ -1,0 +1,3 @@
+services:
+  php-graphql:
+    image: ${MAGEFLEET_IMAGE_REPOSITORY}/php-fpm${MAGEFLEET_SVC_PHP_IMAGE_SUFFIX:-}:${PHP_VERSION:-7.4}${MAGEFLEET_SVC_PHP_VARIANT:-}-${XDEBUG_VERSION:-debug}

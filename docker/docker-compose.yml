@@ -1,0 +1,46 @@
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:${TRAEFIK_VERSION:-2.11}
+    ports:
+      - "${TRAEFIK_LISTEN:-127.0.0.1}:80:80"     # The HTTP port
+      - "${TRAEFIK_LISTEN:-127.0.0.1}:443:443"   # The HTTPS port
+    volumes:
+      - ${MAGEFLEET_HOME_DIR}/etc/traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ${MAGEFLEET_HOME_DIR}/etc/traefik/dynamic.yml:/etc/traefik/dynamic.yml
+      - ${MAGEFLEET_HOME_DIR}/ssl/certs:/etc/ssl/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.${MAGEFLEET_SERVICE_DOMAIN:-magefleet.test}`)
+      - traefik.http.routers.traefik.service=api@internal
+    restart: ${MAGEFLEET_RESTART_POLICY:-always}
+
+  tunnel:
+    container_name: tunnel
+    image: panubo/sshd:latest
+    ports:
+      - "127.0.0.1:2222:22"
+    volumes:
+      - ${MAGEFLEET_HOME_DIR}/tunnel/ssh_key.pub:/etc/authorized_keys/user
+      - sshd_keys:/etc/ssh/keys
+    environment:
+      - |
+        MOTD=Welcome to the MageFleet SSH tunnel container!
+
+        This tunnel container is used only for forwarding TCP
+        connections, generally to port 3306 of db containers
+        and is not typically used with an interactive shell.
+
+      - SSH_USERS=user:2000:2000
+      - TCP_FORWARDING=true
+    restart: ${MAGEFLEET_RESTART_POLICY:-always}
+
+volumes:
+  portainer:
+  sshd_keys:
+
+networks:
+  default:
+    name: magefleet

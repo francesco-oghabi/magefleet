@@ -1,0 +1,9 @@
+services:
+  redis:
+    hostname: "${MAGEFLEET_ENV_NAME}-redis"
+    image: ${MAGEFLEET_IMAGE_REPOSITORY}/redis:${REDIS_VERSION:-5.0}
+    volumes:
+      - redis:/data
+
+volumes:
+  redis:

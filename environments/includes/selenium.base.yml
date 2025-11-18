@@ -1,0 +1,7 @@
+services:
+  selenium:
+    hostname: ${MAGEFLEET_ENV_NAME}_selenium
+    image: selenium/standalone-chromium:${MAGEFLEET_SELENIUM_VERSION:-latest}
+    extra_hosts:
+      - ${TRAEFIK_DOMAIN}:${TRAEFIK_ADDRESS:-0.0.0.0}
+      - ${TRAEFIK_SUBDOMAIN:-app}.${TRAEFIK_DOMAIN}:${TRAEFIK_ADDRESS:-0.0.0.0}

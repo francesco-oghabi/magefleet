@@ -1,0 +1,16 @@
+services:
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_ABSOLUTE_URI=https://phpmyadmin.${MAGEFLEET_SERVICE_DOMAIN:-magefleet.test}
+    volumes:
+      - /sessions
+      - ${MAGEFLEET_HOME_DIR}/etc/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.phpmyadmin.tls=true
+      - traefik.http.routers.phpmyadmin.rule=Host(`phpmyadmin.${MAGEFLEET_SERVICE_DOMAIN:-magefleet.test}`)||Host(`phpmyadmin.magefleet.test`)
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
+    restart: ${MAGEFLEET_RESTART_POLICY:-always}

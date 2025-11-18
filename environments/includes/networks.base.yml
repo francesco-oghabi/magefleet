@@ -1,0 +1,5 @@
+networks:
+  default:
+    labels:
+      - dev.magefleet.environment.name=${MAGEFLEET_ENV_NAME}
+      - dev.magefleet.environment.type=${MAGEFLEET_ENV_TYPE}

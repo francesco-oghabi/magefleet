@@ -1,0 +1,6 @@
+
+x-volumes: &volumes
+  - .${MAGEFLEET_WEB_ROOT:-}/:/var/www/html
+
+services:
+  magepack: { volumes: *volumes }
