@@ -75,3 +75,6 @@ This fork maintains compatibility with Warden's architecture while focusing excl
 If you find this tool useful, please consider supporting the original Warden project:
 - [Warden on OpenCollective](https://opencollective.com/warden)
 - [Warden on GitHub Sponsors](https://github.com/sponsors/wardenenv)
+
+---
+Maintained by [Francesco Oghabi](https://oghabi.it/it-it/) — Magento/Adobe Commerce & cloud consulting.
